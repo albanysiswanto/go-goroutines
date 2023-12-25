@@ -2,6 +2,7 @@ package belajar_go_goroutines
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -82,4 +83,81 @@ func TestBufferedChannel(t *testing.T) {
 	//fmt.Println(cap(channel)) // Melihat panjang buffer
 
 	fmt.Println("Selesai")
+}
+
+// 5. Range Channel
+func TestRangeChannel(t *testing.T) {
+	channel := make(chan string)
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			channel <- "Perulangan ke-" + strconv.Itoa(i)
+		}
+		close(channel)
+	}()
+
+	for data := range channel {
+		fmt.Println(data)
+	}
+
+	fmt.Println("DONE")
+}
+
+// 6. Select Channel
+func TestSelectChannel(t *testing.T) {
+	channel1 := make(chan string)
+	channel2 := make(chan string)
+	defer close(channel1)
+	defer close(channel2)
+
+	go GiveMeResponse(channel1)
+	go GiveMeResponse(channel2)
+
+	conunter := 0
+	for {
+		select {
+		case data := <-channel1:
+			fmt.Println("Data dari channel 1", data)
+			conunter++
+		case data := <-channel2:
+			fmt.Println("Data dari channel 2", data)
+			conunter++
+		}
+
+		if conunter == 2 {
+			fmt.Println("DONE")
+			break
+		}
+	}
+}
+
+// 7. Default Select Channel
+func TestDefaultSelectChannel(t *testing.T) {
+	channel1 := make(chan string)
+	channel2 := make(chan string)
+	defer close(channel1)
+	defer close(channel2)
+
+	go GiveMeResponse(channel1)
+	go GiveMeResponse(channel2)
+
+	conunter := 0
+	for {
+		select {
+		case data := <-channel1:
+			fmt.Println("Data dari channel 1", data)
+			conunter++
+		case data := <-channel2:
+			fmt.Println("Data dari channel 2", data)
+			conunter++
+		default:
+			fmt.Println("Menunggu data")
+			// ini dilakukan saat ingin mengerjakan proses lain sembari menunggu channel mengirim data
+		}
+
+		if conunter == 2 {
+			fmt.Println("DONE")
+			break
+		}
+	}
 }
